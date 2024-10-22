@@ -1,5 +1,5 @@
 #!/bin/bash
-# Blah blah star topology or sum sheit script
+# Blah blah lab 2 script
 used_ports=()   # array of used ports
 
 problem() {
@@ -121,13 +121,13 @@ start_jade() {
 
     if [ -z "$mode" ]; then        # all
         get_input "Main" "$star" "$encr" "$auth" "gui" "$name" "$host" "$port"
-        command_gui=$command
+        command_gui="$command"
         if [ "$star" == "y" ]; then
             get_input "Backup" "$star" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
-            command_backup=$command
+            command_backup="$command"
         fi
         get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
-        command_container=$command
+        command_container="$command"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
         if [ "$star" == "y" ]; then
@@ -137,14 +137,14 @@ start_jade() {
     
     elif [ "$mode" == "0" ]; then  # main
         get_input "Main" "$star" "$encr" "$auth" "gui" "$name" "$host" "$port"
-        command_gui=$command
+        command_gui="$command"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
     
     elif [ "$mode" == "1" ]; then  # backup
         if [ "$star" == "y" ]; then
             get_input "Backup" "$star" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
-            command_backup=$command
+            command_backup="$command"
 
             gnome-terminal -- bash -c "$command_backup; exec bash"
         else
@@ -154,13 +154,13 @@ start_jade() {
     
     elif [ "$mode" == "2" ]; then  # federated
         get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
-        command_container=$command
+        command_container="$command"
 
         gnome-terminal -- bash -c "$command_container; exec bash"
     fi
 }
 
-main () {
+main() {
     if [ -n "$1" ] && [ "$1" -gt 2 ]; then
         echo "Unknown argument (none/0/1/2)"
         exit 1
