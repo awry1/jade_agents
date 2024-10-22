@@ -37,31 +37,23 @@ get_input() {
     read -p "Local port: " local_port
 
     command="java"
-    if [ "$4" == "y" ]; then  # encr
-        read -p "Keystore name: " keystore
-        if [ -z "$keystore" ]; then
-            problem "keystore"
-        fi
-        read -p "Password: " password
-        if [ -z "$password" ]; then
-            problem "password"
-        fi
-        read -p "Keystore2 name: " keystore2
-        if [ -z "$keystore2" ]; then
-            problem "keystore2"
-        fi
-
-        # Generate pair of keys
-        keytool -genkeypair -keystore "$keystore".jks -alias "$keystore"
-        # Export public key
-        keytool -export -keystore "$keystore".jks -alias "$keystore" -file "$keystore".cer
-        # Import public key
-        keytool -import -file "$keystore".cer -alias "$keystore" -keystore "$keystore2"-ca.jks
-
-        command="$command -Djavax.net.ssl.keyStore=${keystore}.jks"
-        command="$command -Djavax.net.ssl.keyStorePassword=${password}"
-        command="$command -Djavax.net.ssl.trustStore=${keystore2}-ca.jks"
-    fi
+    # if [ "$4" == "y" ]; then  # auth
+    #     read -p "Keystore name: " keystore
+    #     if [ -z "$keystore" ]; then
+    #         problem "keystore"
+    #     fi
+    #     read -p "Password: " password
+    #     if [ -z "$password" ]; then
+    #         problem "password"
+    #     fi
+    #     read -p "Keystore2 name: " keystore2
+    #     if [ -z "$keystore2" ]; then
+    #         problem "keystore2"
+    #     fi
+    #     command="$command -Djavax.net.ssl.keyStore=${keystore}.jks"
+    #     command="$command -Djavax.net.ssl.keyStorePassword=${password}"
+    #     command="$command -Djavax.net.ssl.trustStore=${keystore2}-ca.jks"
+    # fi
     command="$command -cp jade.jar jade.Boot -$5"
     if [ -n "$6" ]; then
         command="$command -name $6"
@@ -105,7 +97,7 @@ get_input() {
             command="$command jade.core.replication.AddressNotificationService"
         fi
     fi
-    if [ "$3" == "y" ]; then  # auth
+    if [ "$3" == "y" ]; then  # encr
         command="$command -nomtp -icps jade.imtp.leap.JICP.JICPSPeer"
     fi
 }
@@ -128,6 +120,13 @@ start_jade() {
         fi
         get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
         command_container="$command"
+
+        # # Generate pair of keys
+        # keytool -genkeypair -keystore "$keystore".jks -alias "$keystore"
+        # # Export public key
+        # keytool -export -keystore "$keystore".jks -alias "$keystore" -file "$keystore".cer
+        # # Import public key
+        # keytool -import -file "$keystore".cer -alias "$keystore" -keystore "$keystore2"-ca.jks
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
         if [ "$star" == "y" ]; then
@@ -191,8 +190,3 @@ main() {
 main "$1"
 echo -e "\nElo Żelo"
 exit 0
-
-# To Do:
-# fix encr
-# fix auth
-# optional (stupid idea): used_ports in tmp file
