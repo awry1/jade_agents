@@ -117,22 +117,24 @@ start_jade() {
         get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
         command_container="$command"
 
-        loop_var=(main backup federated)
-        # Loop through all containers and generate keystore and truststore for each
-        for i in "${loop_var[@]}"; do
-            if [ "$star" == "n" ] && [ "$i" == "backup" ]; then
-                continue
-            fi
-            # Generate keystore
-            echo -e "\nGenerating keystore for $i"
-            keytool -genkeypair -keystore "${i}.jks" -alias "${i}" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-            # Export public key
-            echo -e "\nExporting public key for $i"
-            keytool -export -keystore "${i}.jks" -alias "${i}" -file "${i}.cer" -storepass "$keypassword" > /dev/null 2>&1
-            # Import public key
-            echo -e "\nImporting public key for $i"
-            keytool -import -file "${i}.cer" -alias "${i}" -keystore "${i}-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-        done
+        if [ "$auth" == "y" ]; then
+            loop_var=(main backup federated)
+            # Loop through all containers and generate keystore and truststore for each
+            for i in "${loop_var[@]}"; do
+                if [ "$star" == "n" ] && [ "$i" == "backup" ]; then
+                    continue
+                fi
+                # Generate keystore
+                echo -e "\nGenerating keystore for $i"
+                keytool -genkeypair -keystore "${i}.jks" -alias "${i}" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
+                # Export public key
+                echo -e "\nExporting public key for $i"
+                keytool -export -keystore "${i}.jks" -alias "${i}" -file "${i}.cer" -storepass "$keypassword" > /dev/null 2>&1
+                # Import public key
+                echo -e "\nImporting public key for $i"
+                keytool -import -file "${i}.cer" -alias "${i}" -keystore "${i}-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+            done
+        fi
 
         # echo "Starting containers"
         # echo "$command_gui"
@@ -149,15 +151,17 @@ start_jade() {
         get_input "Main" "$star" "$encr" "$auth" "gui" "$name" "$host" "$port"
         command_gui="$command"
 
-        # Generate keystore
-        echo -e "\nGenerating keystore for main"
-        keytool -genkeypair -keystore "main.jks" -alias "main" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-        # Export public key
-        echo -e "\nExporting public key for main"
-        keytool -export -keystore "main.jks" -alias "main" -file "main.cer" -storepass "$keypassword" > dev/null 2>&1
-        # Import public key
-        echo -e "\nImporting public key for main"
-        keytool -import -file "main.cer" -alias "main" -keystore "main-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+        if [ "$auth" == "y" ]; then
+            # Generate keystore
+            echo -e "\nGenerating keystore for main"
+            keytool -genkeypair -keystore "main.jks" -alias "main" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
+            # Export public key
+            echo -e "\nExporting public key for main"
+            keytool -export -keystore "main.jks" -alias "main" -file "main.cer" -storepass "$keypassword" > dev/null 2>&1
+            # Import public key
+            echo -e "\nImporting public key for main"
+            keytool -import -file "main.cer" -alias "main" -keystore "main-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+        fi
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
     
@@ -166,15 +170,17 @@ start_jade() {
             get_input "Backup" "$star" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
             command_backup="$command"
 
-            # Generate keystore
-            echo -e "\nGenerating keystore for backup"
-            keytool -genkeypair -keystore "backup.jks" -alias "backup" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-            # Export public key
-            echo -e "\nExporting public key for backup"
-            keytool -export -keystore "backup.jks" -alias "backup" -file "backup.cer" -storepass "$keypassword" > dev/null 2>&1
-            # Import public key
-            echo -e "\nImporting public key for backup"
-            keytool -import -file "backup.cer" -alias "backup" -keystore "backup-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+            if [ "$auth" == "y" ]; then
+                # Generate keystore
+                echo -e "\nGenerating keystore for backup"
+                keytool -genkeypair -keystore "backup.jks" -alias "backup" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
+                # Export public key
+                echo -e "\nExporting public key for backup"
+                keytool -export -keystore "backup.jks" -alias "backup" -file "backup.cer" -storepass "$keypassword" > dev/null 2>&1
+                # Import public key
+                echo -e "\nImporting public key for backup"
+                keytool -import -file "backup.cer" -alias "backup" -keystore "backup-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+            fi
 
             gnome-terminal -- bash -c "$command_backup; exec bash"
         else
@@ -186,16 +192,18 @@ start_jade() {
         get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
         command_container="$command"
 
-        # Generate keystore
-        echo -e "\nGenerating keystore for federated"
-        keytool -genkeypair -keystore "federated.jks" -alias "federated" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-        # Export public key
-        echo -e "\nExporting public key for federated"
-        keytool -export -keystore "federated.jks" -alias "federated" -file "federated.cer" -storepass "$keypassword" > dev/null 2>&1
-        # Import public key
-        echo -e "\nImporting public key for federated"
-        keytool -import -file "federated.cer" -alias "federated" -keystore "federated-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-
+        if [ "$auth" == "y" ]; then
+            # Generate keystore
+            echo -e "\nGenerating keystore for federated"
+            keytool -genkeypair -keystore "federated.jks" -alias "federated" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
+            # Export public key
+            echo -e "\nExporting public key for federated"
+            keytool -export -keystore "federated.jks" -alias "federated" -file "federated.cer" -storepass "$keypassword" > dev/null 2>&1
+            # Import public key
+            echo -e "\nImporting public key for federated"
+            keytool -import -file "federated.cer" -alias "federated" -keystore "federated-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
+        fi
+        
         gnome-terminal -- bash -c "$command_container; exec bash"
     fi
 }
