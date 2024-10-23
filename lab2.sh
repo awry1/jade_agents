@@ -1,7 +1,6 @@
 #!/bin/bash
 # Blah blah lab 2 script
 used_ports=()   # array of used ports
-keypassword="123456"
 
 problem() {
     echo "⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝"
@@ -23,7 +22,7 @@ problem() {
 
 get_input() {
     # $1 - Main/Backup/Federated
-    # $2 - star (y/n)
+    # $2 - ring (y/n)
     # $3 - encr (y/n)
     # $4 - auth (y/n)
     # $5 - gui/backupmain/container
@@ -38,17 +37,17 @@ get_input() {
     read -p "Local port: " local_port
 
     command="java"
+    # FIX ME
+    # if [ "$3" == "y" ]; then  # encr
+    #     command="$command -Djava.security.properties=java.security"
+    # fi
     if [ "$4" == "y" ]; then  # auth
-        if [ "$1" == "Main" ]; then
-            keystore="main"
-        elif [ "$1" == "Backup" ]; then
-            keystore="backup"
-        elif [ "$1" == "Federated" ]; then
-            keystore="federated"
-        fi
+        keypassword="123456"
+        read -p "Keystore name: " keystore
         command="$command -Djavax.net.ssl.keyStore=${keystore}.jks"
         command="$command -Djavax.net.ssl.keyStorePassword=${keypassword}"
         command="$command -Djavax.net.ssl.trustStore=${keystore}-ca.jks"
+        command="$command -Djavax.net.ssl.trustStorePassword=${keypassword}"
     fi
     command="$command -cp jade.jar jade.Boot -$5"
     if [ -n "$6" ]; then
@@ -62,9 +61,6 @@ get_input() {
         base_port="$8"
     else
         base_port=1099
-    fi
-    if [ -n "$container_name" ]; then
-        command="$command -container-name $container_name"
     fi
     if [ -n "$local_host" ]; then
         command="$command -local-host $local_host"
@@ -81,7 +77,13 @@ get_input() {
         used_ports+=("$base_port")
         base_port=$((base_port+1))
     fi
-    if [ "$2" == "y" ]; then  # star
+    if [ -n "$container_name" ]; then
+        command="$command -container-name $container_name"
+    fi
+    if [ "$3" == "y" ]; then  # encr
+        command="$command -nomtp -icps jade.imtp.leap.JICP.JICPSPeer"
+    fi
+    if [ "$2" == "y" ]; then  # ring
         command="$command -services"
         if [ "$1" == "Main" ]; then
             command="$command jade.core.replication.MainReplicationService\;"
@@ -93,14 +95,11 @@ get_input() {
             command="$command jade.core.replication.AddressNotificationService"
         fi
     fi
-    if [ "$3" == "y" ]; then  # encr
-        command="$command -nomtp -icps jade.imtp.leap.JICP.JICPSPeer"
-    fi
 }
 
 start_jade() {
     mode="$1"
-    star="$2"
+    ring="$2"
     encr="$3"
     auth="$4"
     name="$5"
@@ -108,101 +107,61 @@ start_jade() {
     port="$7"
 
     if [ -z "$mode" ]; then        # all
-        get_input "Main" "$star" "$encr" "$auth" "gui" "$name" "$host" "$port"
+        get_input "Main" "$ring" "$encr" "$auth" "gui" "$name" "$host" "$port"
         command_gui="$command"
-        if [ "$star" == "y" ]; then
-            get_input "Backup" "$star" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
+        if [ "$ring" == "y" ]; then
+            get_input "Backup" "$ring" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
             command_backup="$command"
         fi
-        get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
+        get_input "Federated" "$ring" "$encr" "$auth" "container" "$name" "$host" "$port"
         command_container="$command"
 
-        if [ "$auth" == "y" ]; then
-            loop_var=(main backup federated)
-            # Loop through all containers and generate keystore and truststore for each
-            for i in "${loop_var[@]}"; do
-                if [ "$star" == "n" ] && [ "$i" == "backup" ]; then
-                    continue
-                fi
-                # Generate keystore
-                echo -e "\nGenerating keystore for $i"
-                keytool -genkeypair -keystore "${i}.jks" -alias "${i}" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-                # Export public key
-                echo -e "\nExporting public key for $i"
-                keytool -export -keystore "${i}.jks" -alias "${i}" -file "${i}.cer" -storepass "$keypassword" > /dev/null 2>&1
-                # Import public key
-                echo -e "\nImporting public key for $i"
-                keytool -import -file "${i}.cer" -alias "${i}" -keystore "${i}-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-            done
+        echo ""
+        echo "$command_gui"
+        if [ "$ring" == "y" ]; then
+            echo "$command_backup"
         fi
-
-        # echo "Starting containers"
-        # echo "$command_gui"
-        # echo "$command_backup"
-        # echo "$command_container"
+        echo "$command_container"
+        read -p "Press any key to start containers"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
-        if [ "$star" == "y" ]; then
+        if [ "$ring" == "y" ]; then
             gnome-terminal -- bash -c "$command_backup; exec bash"
         fi
         gnome-terminal -- bash -c "$command_container; exec bash"
     
     elif [ "$mode" == "0" ]; then  # main
-        get_input "Main" "$star" "$encr" "$auth" "gui" "$name" "$host" "$port"
+        get_input "Main" "$ring" "$encr" "$auth" "gui" "$name" "$host" "$port"
         command_gui="$command"
 
-        if [ "$auth" == "y" ]; then
-            # Generate keystore
-            echo -e "\nGenerating keystore for main"
-            keytool -genkeypair -keystore "main.jks" -alias "main" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-            # Export public key
-            echo -e "\nExporting public key for main"
-            keytool -export -keystore "main.jks" -alias "main" -file "main.cer" -storepass "$keypassword" > dev/null 2>&1
-            # Import public key
-            echo -e "\nImporting public key for main"
-            keytool -import -file "main.cer" -alias "main" -keystore "main-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-        fi
+        echo ""
+        echo "$command_gui"
+        read -p "Press any key to start container"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
     
     elif [ "$mode" == "1" ]; then  # backup
-        if [ "$star" == "y" ]; then
-            get_input "Backup" "$star" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
+        if [ "$ring" == "y" ]; then
+            get_input "Backup" "$ring" "$encr" "$auth" "backupmain" "$name" "$host" "$port"
             command_backup="$command"
 
-            if [ "$auth" == "y" ]; then
-                # Generate keystore
-                echo -e "\nGenerating keystore for backup"
-                keytool -genkeypair -keystore "backup.jks" -alias "backup" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-                # Export public key
-                echo -e "\nExporting public key for backup"
-                keytool -export -keystore "backup.jks" -alias "backup" -file "backup.cer" -storepass "$keypassword" > dev/null 2>&1
-                # Import public key
-                echo -e "\nImporting public key for backup"
-                keytool -import -file "backup.cer" -alias "backup" -keystore "backup-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-            fi
+            echo ""
+            echo "$command_backup"
+            read -p "Press any key to start container"
 
             gnome-terminal -- bash -c "$command_backup; exec bash"
         else
-            echo "No star topology, no backup"
+            echo "No ring topology, no backup"
             exit 1
         fi
     
     elif [ "$mode" == "2" ]; then  # federated
-        get_input "Federated" "$star" "$encr" "$auth" "container" "$name" "$host" "$port"
+        get_input "Federated" "$ring" "$encr" "$auth" "container" "$name" "$host" "$port"
         command_container="$command"
 
-        if [ "$auth" == "y" ]; then
-            # Generate keystore
-            echo -e "\nGenerating keystore for federated"
-            keytool -genkeypair -keystore "federated.jks" -alias "federated" -storepass "$keypassword" -keypass "$keypassword" -keyalg RSA -dname "CN=., OU=., O=., L=., ST=., C=."  > /dev/null 2>&1 # -keysize 2048 -validity 365
-            # Export public key
-            echo -e "\nExporting public key for federated"
-            keytool -export -keystore "federated.jks" -alias "federated" -file "federated.cer" -storepass "$keypassword" > dev/null 2>&1
-            # Import public key
-            echo -e "\nImporting public key for federated"
-            keytool -import -file "federated.cer" -alias "federated" -keystore "federated-ca.jks" -storepass "$keypassword" -noprompt > /dev/null 2>&1
-        fi
+        echo ""
+        echo "$command_container"
+        read -p "Press any key to start container"
         
         gnome-terminal -- bash -c "$command_container; exec bash"
     fi
@@ -217,10 +176,10 @@ main() {
     read -p "Platform name: " name
     read -p "Host: " host
     read -p "Port: " port
-    read -p "Star topology (y/n): " star
-    if [ -z "$star" ]; then
-        star="n"
-        echo -e "\033[1A\033[2K\rStar topology (y/n): n"    # Such wow, much magic
+    read -p "Ring topology (y/n): " ring
+    if [ -z "$ring" ]; then
+        ring="n"
+        echo -e "\033[1A\033[2K\rRing topology (y/n): n"    # Such wow, much magic
     fi
     read -p "Encryption (y/n): " encr
     if [ -z "$encr" ]; then
@@ -231,9 +190,13 @@ main() {
     if [ -z "$auth" ]; then
         auth="n"
         echo -e "\033[1A\033[2K\rAuthentication (y/n): n"
+    elif [ "$auth" == "y" ]; then
+        auth="y"
+        echo -e "\033[1A\033[1A\033[2K\rEncryption (y/n): y"
+        echo -e "\033[2K\rAuthentication (y/n): y"
     fi
-
-    start_jade "$1" "$star" "$encr" "$auth" "$name" "$host" "$port"
+    
+    start_jade "$1" "$ring" "$encr" "$auth" "$name" "$host" "$port"
 }
 
 main "$1"

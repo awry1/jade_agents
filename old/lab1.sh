@@ -1,5 +1,6 @@
 #!/bin/bash
 # Blah blah lab 1 script
+used_ports=()   # array of used ports
 
 get_input() {
     # $1 - Main/Federated
@@ -23,6 +24,9 @@ get_input() {
     fi
     if [ -n "$5" ]; then
         command="$command -port $5"
+        base_port="$5"
+    else
+        base_port=1099
     fi
     if [ -n "$container_name" ]; then
         command="$command -container-name $container_name"
@@ -32,6 +36,15 @@ get_input() {
     fi
     if [ -n "$local_port" ]; then
         command="$command -local-port $local_port"
+        used_ports+=("$local_port")
+        base_port=$((local_port+1))
+    else
+        while [[ " ${used_ports[@]} " =~ " ${base_port} " ]]; do
+            base_port=$((base_port+1))
+        done
+        command="$command -local-port $base_port"
+        used_ports+=("$base_port")
+        base_port=$((base_port+1))
     fi
 }
 
