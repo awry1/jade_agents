@@ -639,9 +639,7 @@ sun.security.krb5.maxReferrals=5
 #   jdk.certpath.disabledAlgorithms=MD2, DSA, RSA keySize < 2048
 #
 #
-jdk.certpath.disabledAlgorithms=MD2, MD5, SHA1 jdkCA & usage TLSServer, \
-    RSA keySize < 1024, DSA keySize < 1024, EC keySize < 224, \
-    SHA1 usage SignedJAR & denyAfter 2019-01-01
+jdk.certpath.disabledAlgorithms=
 
 #
 # Legacy cryptographic algorithms and key lengths.
@@ -703,8 +701,7 @@ jdk.security.legacyAlgorithms=SHA1, \
 #
 # See "jdk.certpath.disabledAlgorithms" for syntax descriptions.
 #
-jdk.jar.disabledAlgorithms=MD2, MD5, RSA keySize < 1024, \
-      DSA keySize < 1024, SHA1 denyAfter 2019-01-01
+jdk.jar.disabledAlgorithms=
 
 #
 # Disabled message digest algorithms for use with plaintext
@@ -714,7 +711,7 @@ jdk.jar.disabledAlgorithms=MD2, MD5, RSA keySize < 1024, \
 # property "http.auth.digest.reEnabledAlgorithms" to a comma
 # separated list of algorithms to be allowed.
 #
-http.auth.digest.disabledAlgorithms = MD5, SHA-1
+http.auth.digest.disabledAlgorithms =
 
 #
 # Algorithm restrictions for Secure Socket Layer/Transport Layer Security
@@ -748,9 +745,7 @@ http.auth.digest.disabledAlgorithms = MD5, SHA-1
 # Example:
 #   jdk.tls.disabledAlgorithms=MD5, SSLv3, DSA, RSA keySize < 2048, \
 #       rsa_pkcs1_sha1, secp224r1
-jdk.tls.disabledAlgorithms=SSLv3, TLSv1, TLSv1.1, DTLSv1.0, RC4, DES, \
-    MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, \
-    ECDH
+jdk.tls.disabledAlgorithms=
 
 #
 # Legacy algorithms for Secure Socket Layer/Transport Layer Security (SSL/TLS)
