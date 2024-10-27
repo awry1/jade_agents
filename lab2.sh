@@ -38,7 +38,7 @@ get_input() {
 
     command="java"
     # if [ "$3" == "y" ]; then  # encr
-    #     # command="$command -Djava.security.properties=java.security"
+    #     command="$command -Djava.security.properties=java.security"
     # fi
     if [ "$4" == "y" ]; then  # auth
         keypassword="123456"
