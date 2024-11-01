@@ -2,24 +2,6 @@
 # Blah blah lab 2 script
 used_ports=()   # array of used ports
 
-problem() {
-    echo "⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝"
-    echo "⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇"
-    echo "⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀"
-    echo "⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁⠀⠀⠀"
-    echo "⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁⠀⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-    echo "⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"
-    echo "No $1?"
-    exit 0
-}
-
 get_input() {
     # $1 - Main/Backup/Federated
     # $2 - ring (y/n)
@@ -37,9 +19,9 @@ get_input() {
     read -p "Local port: " local_port
 
     command="java"
-    # if [ "$3" == "y" ]; then  # encr
-    #     command="$command -Djava.security.properties=java.security"
-    # fi
+    if [ "$3" == "y" -a "$4" == "n" ]; then  # encr without auth
+        command="$command -Djava.security.properties=java.security"
+    fi
     if [ "$4" == "y" ]; then  # auth
         keypassword="123456"
         read -p "Keystore name: " keystore
@@ -121,6 +103,7 @@ start_jade() {
             echo "$command_backup"
         fi
         echo "$command_container"
+        echo ""
         read -p "Press any key to start containers"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
@@ -135,6 +118,7 @@ start_jade() {
 
         echo ""
         echo "$command_gui"
+        echo ""
         read -p "Press any key to start container"
 
         gnome-terminal -- bash -c "$command_gui; exec bash"
@@ -146,6 +130,7 @@ start_jade() {
 
             echo ""
             echo "$command_backup"
+            echo ""
             read -p "Press any key to start container"
 
             gnome-terminal -- bash -c "$command_backup; exec bash"
@@ -160,6 +145,7 @@ start_jade() {
 
         echo ""
         echo "$command_container"
+        echo ""
         read -p "Press any key to start container"
         
         gnome-terminal -- bash -c "$command_container; exec bash"
@@ -193,6 +179,10 @@ main() {
         auth="y"
         echo -e "\033[1A\033[1A\033[2K\rEncryption (y/n): y"
         echo -e "\033[2K\rAuthentication (y/n): y"
+    fi
+
+    if [ "$encr" == "y" -a "$auth" == "n" ]; then  # encr without auth
+        echo "There may be problems while using only encryption without authentication"
     fi
     
     start_jade "$1" "$ring" "$encr" "$auth" "$name" "$host" "$port"
