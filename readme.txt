@@ -11,4 +11,4 @@
 ./keygen.sh main
 ./keygen.sh fed
 ./keyimport.sh main fed
-.keyimport.sh fed main
+./keyimport.sh fed main
