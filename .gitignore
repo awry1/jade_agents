@@ -1,2 +1,4 @@
-APDescription.txt
-MTPs-*.txt
+solution_lab*/APDescription.txt
+solution_lab*/MTPs-*.txt
+solution_lab*/*.cer
+solution_lab*/*.jks

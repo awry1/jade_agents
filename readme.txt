@@ -8,9 +8,3 @@
 ./lab1.sh 2 - federated container
 
 3) don't try to start lab2 with only encryption (unless you wanna waste hours)
-
-4) to start lab2 with auth you need to first create keystores using provided scripts, for example:
-./keygen.sh main
-./keygen.sh fed
-./keyimport.sh main fed
-./keyimport.sh fed main
