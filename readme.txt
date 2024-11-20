@@ -7,4 +7,4 @@
 ./lab1.sh 0 - backup container
 ./lab1.sh 2 - federated container
 
-3) don't try to start lab2 with only encryption (unless you wanna waste hours)
+3) don't try to start lab2 with only encryption (stoopid java security)

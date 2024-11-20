@@ -19,9 +19,10 @@ get_input() {
     read -p "Local port: " local_port
 
     command="java"
-    if [ "$3" == "y" -a "$4" == "n" ]; then  # encr without auth
-        command="$command -Djava.security.properties=java.security"
-    fi
+    # Could not get it to work
+    # if [ "$3" == "y" -a "$4" == "n" ]; then  # encr without auth
+    #     command="$command -Djava.security.properties=java.security"
+    # fi
     if [ "$4" == "y" ]; then  # auth
         keypassword="123456"
         read -p "Keystore name: " keystore
@@ -182,7 +183,8 @@ main() {
     fi
 
     if [ "$encr" == "y" -a "$auth" == "n" ]; then  # encr without auth
-        echo "There may be problems while using only encryption without authentication"
+        echo "Encryption without authentication is not supported, enabling authentication"
+        auth="y"
     fi
     
     start_jade "$1" "$ring" "$encr" "$auth" "$name" "$host" "$port"
